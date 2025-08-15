@@ -299,7 +299,8 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
           </g>
           
           <g>
-            {Object.entries(pointersByCommit).map(([commitId, pointers]) => {
+            {Object.keys(pointersByCommit).map((commitId) => {
+                const pointers = pointersByCommit[commitId];
                 const { branches, tags } = pointers;
                 const commit = commits[commitId];
                 if (!commit) return null;

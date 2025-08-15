@@ -1,0 +1,6 @@
+{
+  "name": "Git Visualizer Demo",
+  "description": "An application to visually demonstrate basic Git commands like commit, branch, and merge using 2D animations and clear explanations.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

@@ -12,7 +12,15 @@ interface GitVisualizerProps {
   reachableCommits: Set<string>;
 }
 
-const PointerTag = ({ name, x, y, isHead, isTag }: { name: string; x: number; y: number; isHead?: boolean; isTag?: boolean }) => {
+interface PointerTagProps {
+  name: string;
+  x: number;
+  y: number;
+  isHead?: boolean;
+  isTag?: boolean;
+}
+
+const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag }) => {
     const color = isTag ? 'bg-amber-600' : isHead ? 'bg-sky-500' : 'bg-emerald-600';
     const iconColor = isTag ? 'text-amber-200' : isHead ? 'text-sky-200' : 'text-emerald-200';
     const Icon = isHead ? HeadIcon : (isTag ? TagIcon : BranchIcon);
@@ -39,12 +47,12 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
     Object.keys(commits).forEach(id => {
       mapping[id] = { branches: [], tags: [] };
     });
-    Object.values(branches).forEach(branch => {
+    Object.values(branches).forEach((branch: Branch) => {
         if(mapping[branch.commitId]) {
             mapping[branch.commitId].branches.push(branch);
         }
     });
-    Object.values(tags).forEach(tag => {
+    Object.values(tags).forEach((tag: Tag) => {
         if(mapping[tag.commitId]) {
             mapping[tag.commitId].tags.push(tag);
         }
@@ -291,7 +299,8 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
           </g>
           
           <g>
-            {Object.entries(pointersByCommit).map(([commitId, { branches, tags }]) => {
+            {Object.entries(pointersByCommit).map(([commitId, pointers]) => {
+                const { branches, tags } = pointers;
                 const commit = commits[commitId];
                 if (!commit) return null;
 

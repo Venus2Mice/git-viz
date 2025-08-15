@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Commit, Branch, Head, Tag } from './types';
 import GitVisualizer from './components/GitVisualizer';
@@ -319,8 +318,8 @@ function App() {
     const reachable = new Set<string>();
     const queue: string[] = [];
     
-    Object.values(branches).forEach(b => queue.push(b.commitId));
-    Object.values(tags).forEach(t => queue.push(t.commitId));
+    Object.values(branches).forEach((b: Branch) => queue.push(b.commitId));
+    Object.values(tags).forEach((t: Tag) => queue.push(t.commitId));
     if (head.type === 'detached') {
       queue.push(head.commitId);
     }
@@ -340,7 +339,7 @@ function App() {
 
   const otherBranches = useMemo(() => Object.keys(branches).filter(b => head.type === 'branch' && b !== head.name), [branches, head]);
   const rebaseableBranches = useMemo(() => otherBranches.filter(b => !isAncestor(getHeadCommit()?.id || '', branches[b]?.commitId)), [otherBranches, branches, getHeadCommit, isAncestor]);
-  const sortedCommits = useMemo(() => Object.values(commits).sort((a,b) => b.x - a.x), [commits])
+  const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]);
 
   const headCommit = getHeadCommit();
 

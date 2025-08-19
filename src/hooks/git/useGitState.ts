@@ -31,6 +31,7 @@ export const useGitState = () => {
   const [branchLanes, setBranchLanes] = useState<Record<string, number>>(initialBranchLanes);
   const [commitCounter, setCommitCounter] = useState(1);
   const [explanation, setExplanation] = useState(explanations.INITIAL);
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
 
   const resetState = () => {
     setCommits({ [initialCommit.id]: initialCommit });
@@ -41,11 +42,12 @@ export const useGitState = () => {
     setBranchLanes(initialBranchLanes);
     setCommitCounter(1);
     setExplanation(explanations.INITIAL);
+    setCommandHistory([]);
   };
 
   return {
-    state: { commits, branches, remotes, tags, head, branchLanes, commitCounter, explanation },
-    setters: { setCommits, setBranches, setRemotes, setTags, setHead, setBranchLanes, setCommitCounter, setExplanation },
+    state: { commits, branches, remotes, tags, head, branchLanes, commitCounter, explanation, commandHistory },
+    setters: { setCommits, setBranches, setRemotes, setTags, setHead, setBranchLanes, setCommitCounter, setExplanation, setCommandHistory },
     resetState,
   };
 };

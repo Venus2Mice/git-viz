@@ -61,3 +61,10 @@ export const ResetIcon = () => (
         <path d="M4 9h10a5 5 0 0 1 5 5v4"></path>
     </svg>
 );
+
+export const RotateCcwIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 2v6h6"></path>
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L3 12"></path>
+    </svg>
+);

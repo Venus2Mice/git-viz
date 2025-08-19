@@ -11,17 +11,23 @@ const initialCommit: Commit = {
   y: Y_SPACING * 4,
 };
 
-const initialBranch: Branch = {
-  name: 'main',
-  commitId: 'c0',
+const initialBranches: Record<string, Branch> = {
+  'main': {
+    name: 'main',
+    commitId: 'c0',
+  }
 };
+
+const initialHead: Head = { type: 'branch', name: 'main' };
+
+const initialBranchLanes: Record<string, number> = { 'main': 4 };
 
 export const useGitVisualizer = () => {
   const [commits, setCommits] = useState<Record<string, Commit>>({ [initialCommit.id]: initialCommit });
-  const [branches, setBranches] = useState<Record<string, Branch>>({ [initialBranch.name]: initialBranch });
+  const [branches, setBranches] = useState<Record<string, Branch>>(initialBranches);
   const [tags, setTags] = useState<Record<string, Tag>>({});
-  const [head, setHead] = useState<Head>({ type: 'branch', name: 'main' });
-  const [branchLanes, setBranchLanes] = useState<Record<string, number>>({ 'main': 4 });
+  const [head, setHead] = useState<Head>(initialHead);
+  const [branchLanes, setBranchLanes] = useState<Record<string, number>>(initialBranchLanes);
   const [commitCounter, setCommitCounter] = useState(1);
   const [explanation, setExplanation] = useState(explanations.INITIAL);
 
@@ -258,6 +264,16 @@ export const useGitVisualizer = () => {
     setExplanation(explanations.RESET);
   }, [head, commits, setBranches, setExplanation]);
 
+  const handleResetSimulation = useCallback(() => {
+    setCommits({ [initialCommit.id]: initialCommit });
+    setBranches(initialBranches);
+    setTags({});
+    setHead(initialHead);
+    setBranchLanes(initialBranchLanes);
+    setCommitCounter(1);
+    setExplanation(explanations.INITIAL);
+  }, []);
+
   const reachableCommits = useMemo(() => {
     const reachable = new Set<string>();
     const queue: string[] = [];
@@ -309,5 +325,6 @@ export const useGitVisualizer = () => {
     handleRevert,
     handleRebase,
     handleReset,
+    handleResetSimulation,
   };
 };

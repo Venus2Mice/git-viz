@@ -6,6 +6,7 @@ import CheckoutControls from './src/components/CheckoutControls';
 import MergeControls from './src/components/MergeControls';
 import RebaseControls from './src/components/RebaseControls';
 import HistoryControls from './src/components/HistoryControls';
+import SimulationControls from './src/components/SimulationControls';
 import { useGitVisualizer } from './src/hooks/useGitVisualizer';
 
 function App() {
@@ -115,6 +116,10 @@ function App() {
             resetTarget={resetTarget}
             setResetTarget={setResetTarget}
             handleReset={handleReset}
+          />
+
+          <SimulationControls
+            handleResetSimulation={git.handleResetSimulation}
           />
         </aside>
 

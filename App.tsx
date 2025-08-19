@@ -1,66 +1,31 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Commit, Branch, Head, Tag } from './types';
 import GitVisualizer from './components/GitVisualizer';
 import { CommitIcon, BranchIcon, MergeIcon, TagIcon, RevertIcon, RebaseIcon, ResetIcon } from './components/icons';
-import { Y_SPACING, X_SPACING, SVG_PADDING } from './constants';
-
-const initialCommit: Commit = {
-  id: 'c0',
-  parents: [],
-  message: 'Initial commit',
-  x: SVG_PADDING + X_SPACING / 2,
-  y: Y_SPACING * 4,
-};
-
-const initialBranch: Branch = {
-  name: 'main',
-  commitId: 'c0',
-};
-
-const explanations = {
-  INITIAL: "Đây là kho git của bạn. Mỗi commit là một snapshot của dự án. Nhấp vào các nút để thực hiện các lệnh git.",
-  COMMIT: "git commit: Tạo một snapshot mới. Mỗi commit có một ID duy nhất và trỏ đến (các) commit cha, tạo nên một lịch sử.",
-  BRANCH: "git branch <tên>: Tạo một con trỏ mới (nhánh) đến một commit. Nhánh cho phép bạn phát triển các tính năng một cách cô lập.",
-  CHECKOUT: "git checkout <tên>: Chuyển HEAD sang một nhánh khác hoặc một commit cụ thể. HEAD chỉ định vị trí commit tiếp theo sẽ được tạo.",
-  CHECKOUT_COMMIT: "Detached HEAD: HEAD đang trỏ trực tiếp đến một commit thay vì một nhánh. Các commit mới sẽ không thuộc bất kỳ nhánh nào.",
-  MERGE: "git merge <tên>: Kết hợp các thay đổi từ một nhánh khác vào nhánh hiện tại (HEAD). Một commit hợp nhất mới với hai cha được tạo ra.",
-  MERGE_FF: "Fast-Forward Merge: Vì không có commit nào khác trên nhánh đích, git chỉ cần di chuyển con trỏ của nhánh về phía trước. Không cần commit hợp nhất.",
-  TAG: "git tag <tên>: Tạo một con trỏ cố định đến một commit cụ thể, thường được sử dụng để đánh dấu các phiên bản phát hành (v1.0).",
-  REVERT: "git revert HEAD: Tạo một commit mới để hoàn tác các thay đổi được thực hiện bởi commit trước đó. Lịch sử được thêm vào, không bị thay đổi.",
-  REBASE: "git rebase <base>: Di chuyển toàn bộ nhánh hiện tại để bắt đầu từ đỉnh của một nhánh khác. Nó viết lại lịch sử commit để tạo ra một luồng công việc tuyến tính.",
-  RESET: "git reset <commit>: Di chuyển con trỏ của nhánh hiện tại (HEAD) về một commit cụ thể. Lệnh này viết lại lịch sử bằng cách loại bỏ các commit khỏi chuỗi lịch sử của nhánh, nhưng không xóa chúng. Chúng trở thành commit 'mồ côi' nếu không có nhánh nào khác trỏ đến chúng."
-};
-
-const ControlGroup = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="border-t border-slate-700 pt-5 mt-5 first:border-t-0 first:pt-0 first:mt-0">
-        <h3 className="text-lg font-semibold text-slate-300 mb-3">{title}</h3>
-        <div className="flex flex-col gap-4">{children}</div>
-    </div>
-);
-
-const StyledSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
-    <div className="relative w-full">
-        <select 
-            {...props}
-            className="w-full appearance-none bg-slate-700 text-white border border-slate-600 rounded-md py-2 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500"
-        >
-            {props.children}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-        </div>
-    </div>
-);
-
+import ControlGroup from './components/ControlGroup';
+import StyledSelect from './components/StyledSelect';
+import { useGitVisualizer } from './hooks/useGitVisualizer';
+import { explanations } from './constants/explanations';
+import { Commit, Branch, Head, Tag } from '../types'; // Added import for types
+import { X_SPACING, Y_SPACING } from '../constants'; // Added import for constants
 
 function App() {
-  const [commits, setCommits] = useState<Record<string, Commit>>({ [initialCommit.id]: initialCommit });
-  const [branches, setBranches] = useState<Record<string, Branch>>({ [initialBranch.name]: initialBranch });
-  const [tags, setTags] = useState<Record<string, Tag>>({});
-  const [head, setHead] = useState<Head>({ type: 'branch', name: 'main' });
-  const [branchLanes, setBranchLanes] = useState<Record<string, number>>({ 'main': 4 });
-  
-  const [commitCounter, setCommitCounter] = useState(1);
+  const {
+    commits,
+    setCommits,
+    branches,
+    setBranches,
+    tags,
+    setTags,
+    head,
+    setHead,
+    branchLanes,
+    setBranchLanes,
+    commitCounter,
+    setCommitCounter,
+    explanation,
+    setExplanation,
+    getHeadCommit,
+  } = useGitVisualizer();
 
   const [newBranchName, setNewBranchName] = useState('');
   const [newTagName, setNewTagName] = useState('');
@@ -68,16 +33,6 @@ function App() {
   const [mergeTarget, setMergeTarget] = useState('');
   const [rebaseTarget, setRebaseTarget] = useState('');
   const [resetTarget, setResetTarget] = useState('');
-
-  const [explanation, setExplanation] = useState(explanations.INITIAL);
-
-  const getHeadCommit = useCallback(() => {
-    if (head.type === 'branch') {
-      const headBranch = branches[head.name];
-      return headBranch ? commits[headBranch.commitId] : null;
-    }
-    return commits[head.commitId];
-  }, [head, branches, commits]);
 
   const handleCommit = useCallback(() => {
     const parentCommit = getHeadCommit();
@@ -114,7 +69,7 @@ function App() {
     
     setCommitCounter(prev => prev + 1);
     setExplanation(explanations.COMMIT);
-  }, [getHeadCommit, commitCounter, head, branchLanes, newCommitMessage]);
+  }, [getHeadCommit, commitCounter, head, branchLanes, newCommitMessage, setCommits, setBranches, setHead, setCommitCounter, setExplanation]);
 
   const handleBranch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +92,7 @@ function App() {
 
     setNewBranchName('');
     setExplanation(explanations.BRANCH);
-  }, [newBranchName, branches, getHeadCommit, branchLanes]);
+  }, [newBranchName, branches, getHeadCommit, branchLanes, setBranches, setBranchLanes, setExplanation]);
 
   const handleTag = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -151,19 +106,19 @@ function App() {
     setTags(prev => ({...prev, [newTagName]: { name: newTagName, commitId: headCommit.id }}));
     setNewTagName('');
     setExplanation(explanations.TAG);
-  }, [newTagName, tags, getHeadCommit]);
+  }, [newTagName, tags, getHeadCommit, setTags, setExplanation]);
 
   const handleCheckout = useCallback((name: string) => {
       setHead({ type: 'branch', name });
       setExplanation(explanations.CHECKOUT);
       setMergeTarget('');
       setRebaseTarget('');
-  }, []);
+  }, [setHead, setExplanation]);
 
   const handleCheckoutCommit = useCallback((commitId: string) => {
       setHead({ type: 'detached', commitId });
       setExplanation(explanations.CHECKOUT_COMMIT);
-  }, []);
+  }, [setHead, setExplanation]);
 
   const isAncestor = useCallback((ancestorId: string, descendantId: string): boolean => {
     let queue = [descendantId];
@@ -220,7 +175,7 @@ function App() {
     setCommitCounter(prev => prev + 1);
     setExplanation(explanations.MERGE);
     setMergeTarget('');
-  }, [head, mergeTarget, branches, commits, commitCounter, isAncestor, branchLanes]);
+  }, [head, mergeTarget, branches, commits, commitCounter, isAncestor, branchLanes, setCommits, setBranches, setCommitCounter, setExplanation]);
 
   const handleRevert = useCallback(() => {
     const parentCommit = getHeadCommit();
@@ -228,9 +183,9 @@ function App() {
         alert("Không thể revert commit đầu tiên.");
         return;
     }
-    handleCommit();
+    handleCommit(); // This will create a new commit
     setExplanation(explanations.REVERT);
-  }, [getHeadCommit, handleCommit]);
+  }, [getHeadCommit, handleCommit, setExplanation]);
   
   const handleRebase = useCallback(() => {
     if (head.type !== 'branch' || !rebaseTarget || head.name === rebaseTarget) return;
@@ -291,7 +246,7 @@ function App() {
     setBranchLanes(prev => ({...prev, [featureBranchName]: branchLanes[baseBranchName]}));
     setExplanation(explanations.REBASE);
     setRebaseTarget('');
-  }, [head, rebaseTarget, branches, commits, commitCounter, branchLanes]);
+  }, [head, rebaseTarget, branches, commits, commitCounter, branchLanes, setCommits, setCommitCounter, setBranches, setBranchLanes, setExplanation]);
 
     const handleReset = useCallback(() => {
     if (head.type !== 'branch' || !resetTarget) {
@@ -312,14 +267,14 @@ function App() {
 
     setExplanation(explanations.RESET);
     setResetTarget('');
-  }, [head, resetTarget, commits]);
+  }, [head, resetTarget, commits, setBranches, setExplanation]);
 
   const reachableCommits = useMemo(() => {
     const reachable = new Set<string>();
     const queue: string[] = [];
     
-    Object.values(branches).forEach((b: Branch) => queue.push(b.commitId));
-    Object.values(tags).forEach((t: Tag) => queue.push(t.commitId));
+    Object.values(branches).forEach((b: Branch) => queue.push(b.commitId)); // Explicitly typed 'b'
+    Object.values(tags).forEach((t: Tag) => queue.push(t.commitId)); // Explicitly typed 't'
     if (head.type === 'detached') {
       queue.push(head.commitId);
     }
@@ -339,7 +294,7 @@ function App() {
 
   const otherBranches = useMemo(() => Object.keys(branches).filter(b => head.type === 'branch' && b !== head.name), [branches, head]);
   const rebaseableBranches = useMemo(() => otherBranches.filter(b => !isAncestor(getHeadCommit()?.id || '', branches[b]?.commitId)), [otherBranches, branches, getHeadCommit, isAncestor]);
-  const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]);
+  const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]); // Explicitly typed 'a' and 'b'
 
   const headCommit = getHeadCommit();
 

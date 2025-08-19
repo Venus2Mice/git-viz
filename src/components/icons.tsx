@@ -68,3 +68,12 @@ export const RotateCcwIcon = () => (
         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L3 12"></path>
     </svg>
 );
+
+export const PushIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 16v-8"></path>
+        <path d="m15 11-3-3-3 3"></path>
+        <path d="M17 21H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"></path>
+        <path d="M19 3h-2a2 2 0 0 0-2 2v2"></path>
+    </svg>
+);

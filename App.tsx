@@ -6,6 +6,7 @@ import CheckoutControls from './src/components/CheckoutControls';
 import MergeControls from './src/components/MergeControls';
 import RebaseControls from './src/components/RebaseControls';
 import HistoryControls from './src/components/HistoryControls';
+import RemoteControls from './src/components/RemoteControls';
 import SimulationControls from './src/components/SimulationControls';
 import { useGitVisualizer } from './src/hooks/useGitVisualizer';
 
@@ -118,6 +119,11 @@ function App() {
             handleReset={handleReset}
           />
 
+          <RemoteControls
+            handlePush={git.handlePush}
+            isAhead={git.isAhead}
+          />
+
           <SimulationControls
             handleResetSimulation={git.handleResetSimulation}
           />
@@ -128,6 +134,7 @@ function App() {
               <GitVisualizer 
                 commits={git.commits} 
                 branches={git.branches} 
+                remotes={git.remotes}
                 head={git.head} 
                 tags={git.tags} 
                 onCommitClick={git.handleCheckoutCommit} 

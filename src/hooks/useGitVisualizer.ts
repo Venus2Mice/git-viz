@@ -18,6 +18,15 @@ const initialBranches: Record<string, Branch> = {
   }
 };
 
+const initialRemotes: Record<string, Record<string, Branch>> = {
+  'origin': {
+    'main': {
+      name: 'main',
+      commitId: 'c0',
+    }
+  }
+};
+
 const initialHead: Head = { type: 'branch', name: 'main' };
 
 const initialBranchLanes: Record<string, number> = { 'main': 4 };
@@ -25,6 +34,7 @@ const initialBranchLanes: Record<string, number> = { 'main': 4 };
 export const useGitVisualizer = () => {
   const [commits, setCommits] = useState<Record<string, Commit>>({ [initialCommit.id]: initialCommit });
   const [branches, setBranches] = useState<Record<string, Branch>>(initialBranches);
+  const [remotes, setRemotes] = useState<Record<string, Record<string, Branch>>>(initialRemotes);
   const [tags, setTags] = useState<Record<string, Tag>>({});
   const [head, setHead] = useState<Head>(initialHead);
   const [branchLanes, setBranchLanes] = useState<Record<string, number>>(initialBranchLanes);
@@ -38,6 +48,26 @@ export const useGitVisualizer = () => {
     }
     return commits[head.commitId];
   }, [head, branches, commits]);
+
+  const isAncestor = useCallback((ancestorId: string, descendantId: string): boolean => {
+    if (!ancestorId) return true; // If ancestor doesn't exist, it's an ancestor of everything
+    let queue = [descendantId];
+    const visited = new Set(queue);
+    while (queue.length > 0) {
+      const currentId = queue.shift()!;
+      if (currentId === ancestorId) return true;
+      const currentCommit = commits[currentId];
+      if (currentCommit) {
+        for (const parentId of currentCommit.parents) {
+          if (!visited.has(parentId)) {
+            visited.add(parentId);
+            queue.push(parentId);
+          }
+        }
+      }
+    }
+    return false;
+  }, [commits]);
 
   const handleCommit = useCallback((message: string) => {
     const parentCommit = getHeadCommit();
@@ -73,7 +103,7 @@ export const useGitVisualizer = () => {
     
     setCommitCounter(prev => prev + 1);
     setExplanation(explanations.COMMIT);
-  }, [getHeadCommit, commitCounter, head, branchLanes, setCommits, setBranches, setHead, setCommitCounter, setExplanation]);
+  }, [getHeadCommit, commitCounter, head, branchLanes]);
 
   const handleBranch = useCallback((branchName: string) => {
     let finalBranchName = branchName;
@@ -102,7 +132,7 @@ export const useGitVisualizer = () => {
 
     setExplanation(explanations.BRANCH);
     return true;
-  }, [branches, getHeadCommit, branchLanes, setBranches, setBranchLanes, setExplanation]);
+  }, [branches, getHeadCommit, branchLanes]);
 
   const handleTag = useCallback((tagName: string) => {
     let finalTagName = tagName;
@@ -122,36 +152,17 @@ export const useGitVisualizer = () => {
     setTags(prev => ({...prev, [finalTagName]: { name: finalTagName, commitId: headCommit.id }}));
     setExplanation(explanations.TAG);
     return true;
-  }, [tags, getHeadCommit, setTags, setExplanation]);
+  }, [tags, getHeadCommit]);
 
   const handleCheckout = useCallback((name: string) => {
       setHead({ type: 'branch', name });
       setExplanation(explanations.CHECKOUT);
-  }, [setHead, setExplanation]);
+  }, []);
 
   const handleCheckoutCommit = useCallback((commitId: string) => {
       setHead({ type: 'detached', commitId });
       setExplanation(explanations.CHECKOUT_COMMIT);
-  }, [setHead, setExplanation]);
-
-  const isAncestor = useCallback((ancestorId: string, descendantId: string): boolean => {
-    let queue = [descendantId];
-    const visited = new Set(queue);
-    while (queue.length > 0) {
-      const currentId = queue.shift()!;
-      if (currentId === ancestorId) return true;
-      const currentCommit = commits[currentId];
-      if (currentCommit) {
-        for (const parentId of currentCommit.parents) {
-          if (!visited.has(parentId)) {
-            visited.add(parentId);
-            queue.push(parentId);
-          }
-        }
-      }
-    }
-    return false;
-  }, [commits]);
+  }, []);
 
   const handleMerge = useCallback((mergeTarget: string) => {
     if (head.type !== 'branch' || !mergeTarget || head.name === mergeTarget) return;
@@ -187,7 +198,7 @@ export const useGitVisualizer = () => {
     }));
     setCommitCounter(prev => prev + 1);
     setExplanation(explanations.MERGE);
-  }, [head, branches, commits, commitCounter, isAncestor, branchLanes, setCommits, setBranches, setCommitCounter, setExplanation]);
+  }, [head, branches, commits, commitCounter, isAncestor, branchLanes]);
 
   const handleRevert = useCallback(() => {
     const parentCommit = getHeadCommit();
@@ -197,7 +208,7 @@ export const useGitVisualizer = () => {
     }
     handleCommit(`Revert "${parentCommit.message}"`);
     setExplanation(explanations.REVERT);
-  }, [getHeadCommit, handleCommit, setExplanation]);
+  }, [getHeadCommit, handleCommit]);
   
   const handleRebase = useCallback((rebaseTarget: string) => {
     if (head.type !== 'branch' || !rebaseTarget || head.name === rebaseTarget) return;
@@ -256,7 +267,7 @@ export const useGitVisualizer = () => {
     setBranches(prev => ({...prev, [featureBranchName]: {...prev[featureBranchName], commitId: newParentCommit.id }}));
     setBranchLanes(prev => ({...prev, [featureBranchName]: branchLanes[baseBranchName]}));
     setExplanation(explanations.REBASE);
-  }, [head, branches, commits, commitCounter, branchLanes, setCommits, setCommitCounter, setBranches, setBranchLanes, setExplanation]);
+  }, [head, branches, commits, commitCounter, branchLanes]);
 
   const handleReset = useCallback((resetTarget: string) => {
     if (head.type !== 'branch' || !resetTarget) {
@@ -276,11 +287,28 @@ export const useGitVisualizer = () => {
     }));
 
     setExplanation(explanations.RESET);
-  }, [head, commits, setBranches, setExplanation]);
+  }, [head, commits]);
+
+  const handlePush = useCallback(() => {
+    if (head.type !== 'branch') {
+      alert("You must be on a branch to push.");
+      return;
+    }
+    const localBranch = branches[head.name];
+    setRemotes(prev => ({
+      ...prev,
+      origin: {
+        ...prev.origin,
+        [localBranch.name]: { ...localBranch }
+      }
+    }));
+    setExplanation(explanations.PUSH);
+  }, [head, branches]);
 
   const handleResetSimulation = useCallback(() => {
     setCommits({ [initialCommit.id]: initialCommit });
     setBranches(initialBranches);
+    setRemotes(initialRemotes);
     setTags({});
     setHead(initialHead);
     setBranchLanes(initialBranchLanes);
@@ -294,6 +322,9 @@ export const useGitVisualizer = () => {
     
     Object.values(branches).forEach((b: Branch) => queue.push(b.commitId));
     Object.values(tags).forEach((t: Tag) => queue.push(t.commitId));
+    if (remotes.origin) {
+      Object.values(remotes.origin).forEach((b: Branch) => queue.push(b.commitId));
+    }
     if (head.type === 'detached') {
       queue.push(head.commitId);
     }
@@ -309,12 +340,19 @@ export const useGitVisualizer = () => {
       }
     }
     return reachable;
-  }, [commits, branches, tags, head]);
+  }, [commits, branches, tags, head, remotes]);
 
   const headCommit = getHeadCommit();
   const otherBranches = useMemo(() => Object.keys(branches).filter(b => head.type === 'branch' && b !== head.name), [branches, head]);
   const rebaseableBranches = useMemo(() => otherBranches.filter(b => !isAncestor(headCommit?.id || '', branches[b]?.commitId)), [otherBranches, branches, headCommit, isAncestor]);
   const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]);
+
+  const isAhead = useMemo(() => {
+    if (head.type !== 'branch') return false;
+    const localCommitId = branches[head.name]?.commitId;
+    const remoteCommitId = remotes.origin[head.name]?.commitId;
+    return localCommitId !== remoteCommitId && isAncestor(remoteCommitId, localCommitId);
+  }, [head, branches, remotes, isAncestor]);
 
   return {
     // State
@@ -322,6 +360,7 @@ export const useGitVisualizer = () => {
     branches,
     tags,
     head,
+    remotes,
     explanation,
     // Derived State
     headCommit,
@@ -329,6 +368,7 @@ export const useGitVisualizer = () => {
     otherBranches,
     rebaseableBranches,
     sortedCommits,
+    isAhead,
     // Handlers
     handleCommit,
     handleBranch,
@@ -339,6 +379,7 @@ export const useGitVisualizer = () => {
     handleRevert,
     handleRebase,
     handleReset,
+    handlePush,
     handleResetSimulation,
   };
 };

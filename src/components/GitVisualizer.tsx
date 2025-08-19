@@ -6,6 +6,7 @@ import { TagIcon, HeadIcon, BranchIcon } from './icons';
 interface GitVisualizerProps {
   commits: Record<string, Commit>;
   branches: Record<string, Branch>;
+  remotes: Record<string, Record<string, Branch>>;
   tags: Record<string, Tag>;
   head: Head;
   onCommitClick: (commitId: string) => void;
@@ -18,13 +19,14 @@ interface PointerTagProps {
   y: number;
   isHead?: boolean;
   isTag?: boolean;
+  isRemote?: boolean;
   onMouseEnter: (e: React.MouseEvent) => void;
   onMouseLeave: () => void;
 }
 
-const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag, onMouseEnter, onMouseLeave }) => {
-    const color = isTag ? 'bg-amber-500' : isHead ? 'bg-sky-500' : 'bg-emerald-500';
-    const iconColor = isTag ? 'text-amber-100' : isHead ? 'text-sky-100' : 'text-emerald-100';
+const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag, isRemote, onMouseEnter, onMouseLeave }) => {
+    const color = isRemote ? 'bg-rose-600' : isTag ? 'bg-amber-500' : isHead ? 'bg-sky-500' : 'bg-emerald-500';
+    const iconColor = isRemote ? 'text-rose-100' : isTag ? 'text-amber-100' : isHead ? 'text-sky-100' : 'text-emerald-100';
     const Icon = isHead ? HeadIcon : (isTag ? TagIcon : BranchIcon);
 
     return (
@@ -46,16 +48,16 @@ const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag, onMo
 };
 
 
-const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, tags, onCommitClick, reachableCommits }) => {
+const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, remotes, head, tags, onCommitClick, reachableCommits }) => {
   const commitList = useMemo(() => Object.values(commits), [commits]);
   const [tooltip, setTooltip] = useState<{ content: React.ReactNode; x: number; y: number } | null>(null);
   const visualizerRef = useRef<HTMLDivElement>(null);
   const centeredOnceRef = useRef(false);
 
   const pointersByCommit = useMemo(() => {
-    const mapping: Record<string, { branches: Branch[]; tags: Tag[] }> = {};
+    const mapping: Record<string, { branches: Branch[]; tags: Tag[]; remotes: Branch[] }> = {};
     Object.keys(commits).forEach(id => {
-      mapping[id] = { branches: [], tags: [] };
+      mapping[id] = { branches: [], tags: [], remotes: [] };
     });
     Object.values(branches).forEach((branch: Branch) => {
         if(mapping[branch.commitId]) {
@@ -67,8 +69,15 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
             mapping[tag.commitId].tags.push(tag);
         }
     });
+    if (remotes.origin) {
+      Object.values(remotes.origin).forEach((branch: Branch) => {
+          if(mapping[branch.commitId]) {
+              mapping[branch.commitId].remotes.push(branch);
+          }
+      });
+    }
     return mapping;
-  }, [commits, branches, tags]);
+  }, [commits, branches, tags, remotes]);
 
   const { width, height, yOffset } = useMemo(() => {
     if (commitList.length === 0) {
@@ -79,37 +88,31 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
     let maxY = 0;
     let minContentY = Infinity;
 
-    // Find boundaries from commits themselves
     commitList.forEach(c => {
       maxX = Math.max(maxX, c.x);
-      maxY = Math.max(maxY, c.y + COMMIT_RADIUS); // bottom of commit circle
-      minContentY = Math.min(minContentY, c.y - COMMIT_RADIUS); // Top of commit circle
+      maxY = Math.max(maxY, c.y + COMMIT_RADIUS);
+      minContentY = Math.min(minContentY, c.y - COMMIT_RADIUS);
     });
 
-    // Find boundaries from pointers, which are rendered above commits
     commitList.forEach(commit => {
         const pointers = pointersByCommit[commit.id];
-        let totalPointersOnCommit = (pointers?.tags.length || 0) + (pointers?.branches.length || 0);
+        let totalPointersOnCommit = (pointers?.tags.length || 0) + (pointers?.branches.length || 0) + (pointers?.remotes.length || 0);
 
         if (head.type === 'detached' && head.commitId === commit.id) {
             totalPointersOnCommit++;
         }
         
         if (totalPointersOnCommit > 0) {
-            // This is the y-coordinate of the top edge of the highest pointer's foreignObject
             const topPointerEdgeY = commit.y - totalPointersOnCommit * (BRANCH_TAG_HEIGHT + 4) - Y_SPACING / 3;
             minContentY = Math.min(minContentY, topPointerEdgeY);
         }
     });
 
     if (minContentY === Infinity) {
-        minContentY = 0; // Fallback
+        minContentY = 0;
     }
     
-    // The offset needed to push all content into positive space, plus padding.
     const calculatedYOffset = (minContentY < SVG_PADDING) ? -minContentY + SVG_PADDING : SVG_PADDING;
-    
-    // The final height is the highest point plus the offset, plus some bottom padding
     const calculatedHeight = maxY + calculatedYOffset + Y_SPACING;
 
     return {
@@ -117,7 +120,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
         height: calculatedHeight,
         yOffset: calculatedYOffset
     };
-  }, [commitList, commits, pointersByCommit, head]);
+  }, [commitList, pointersByCommit, head]);
 
   useLayoutEffect(() => {
     const visualizer = visualizerRef.current;
@@ -131,7 +134,6 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
     }
   }, [commitList, yOffset]);
 
-  // Robust panning state and logic
   const panState = useRef({
     isPanning: false,
     lastX: 0,
@@ -139,11 +141,10 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
   });
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only pan with left-click, and not when clicking on a commit group
     if (e.button !== 0 || (e.target as Element).closest('.group')) {
       return;
     }
-    e.preventDefault(); // Prevent text selection, etc.
+    e.preventDefault();
     
     panState.current = {
       isPanning: true,
@@ -151,7 +152,6 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
       lastY: e.pageY,
     };
     
-    // Apply styles globally for a better panning experience
     document.body.style.cursor = 'grabbing';
     document.body.style.userSelect = 'none';
 
@@ -164,15 +164,12 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
     
     const visualizer = visualizerRef.current;
     if (visualizer) {
-      // Calculate how much the mouse has moved since the last event
       const dx = e.pageX - panState.current.lastX;
       const dy = e.pageY - panState.current.lastY;
 
-      // Apply the inverted delta to the scroll position
       visualizer.scrollLeft -= dx;
       visualizer.scrollTop -= dy;
 
-      // Update the last position for the next move event
       panState.current.lastX = e.pageX;
       panState.current.lastY = e.pageY;
     }
@@ -183,7 +180,6 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
 
     panState.current.isPanning = false;
 
-    // Remove global styles
     document.body.style.removeProperty('cursor');
     document.body.style.removeProperty('user-select');
     
@@ -191,7 +187,6 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
     document.removeEventListener('mouseup', handleGlobalMouseUp);
   };
   
-  // Cleanup listener on unmount
   useEffect(() => {
     return () => {
       document.removeEventListener('mousemove', handleGlobalMouseMove);
@@ -316,7 +311,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
           <g>
             {Object.keys(pointersByCommit).map((commitId) => {
                 const pointers = pointersByCommit[commitId];
-                const { branches, tags } = pointers;
+                const { branches, tags, remotes } = pointers;
                 const commit = commits[commitId];
                 if (!commit) return null;
 
@@ -345,6 +340,17 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                                 onMouseLeave={() => setTooltip(null)}
                             />
                         ))}
+                        {remotes.map((branch) => (
+                            <PointerTag
+                                key={`remote-${branch.name}`}
+                                name={`origin/${branch.name}`}
+                                x={commit.x}
+                                y={commit.y - (pointerOffset++ + 1) * (BRANCH_TAG_HEIGHT + 4) - Y_SPACING / 3}
+                                isRemote
+                                onMouseEnter={(e) => showTooltip(e, `origin/${branch.name}`)}
+                                onMouseLeave={() => setTooltip(null)}
+                            />
+                        ))}
                         {branches.map((branch) => {
                             const isHeadBranch = head.type === 'branch' && head.name === branch.name;
                             return (
@@ -365,7 +371,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
             {head.type === 'detached' && commits[head.commitId] && (() => {
                 const commit = commits[head.commitId];
                 const existingPointers = pointersByCommit[head.commitId];
-                const pointerOffset = (existingPointers?.tags.length || 0) + (existingPointers?.branches.length || 0);
+                const pointerOffset = (existingPointers?.tags.length || 0) + (existingPointers?.branches.length || 0) + (existingPointers?.remotes.length || 0);
                 
                 const showTooltip = (e: React.MouseEvent, content: string) => {
                     const rect = (e.currentTarget as Element).getBoundingClientRect();

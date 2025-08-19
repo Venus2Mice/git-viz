@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import GitVisualizer from './src/components/GitVisualizer';
-import { MergeIcon, RevertIcon, RebaseIcon, ResetIcon } from './src/components/icons';
-import ControlGroup from './src/components/ControlGroup';
-import StyledSelect from './src/components/StyledSelect';
 import CommitControls from './src/components/CommitControls';
 import BranchTagControls from './src/components/BranchTagControls';
 import CheckoutControls from './src/components/CheckoutControls';
+import MergeControls from './src/components/MergeControls';
+import RebaseControls from './src/components/RebaseControls';
+import HistoryControls from './src/components/HistoryControls';
 import { useGitVisualizer } from './src/hooks/useGitVisualizer';
 import { explanations } from './src/constants/explanations';
 import { Commit, Branch, Head, Tag } from './types';
@@ -332,50 +332,31 @@ function App() {
             handleCheckout={handleCheckout}
           />
           
-          {head.type === 'branch' && otherBranches.length > 0 && (
-            <ControlGroup title={`Hợp nhất vào '${head.name}'`}>
-              <div className="flex gap-2">
-                <StyledSelect value={mergeTarget} onChange={e => setMergeTarget(e.target.value)}>
-                    <option value="">Chọn nhánh...</option>
-                    {otherBranches.map(b => <option key={b} value={b}>{b}</option>)}
-                </StyledSelect>
-                <button onClick={handleMerge} disabled={!mergeTarget} className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 disabled:bg-slate-500 disabled:cursor-not-allowed disabled:transform-none">
-                    <MergeIcon /> Hợp nhất
-                </button>
-              </div>
-            </ControlGroup>
-          )}
+          <MergeControls
+            head={head}
+            otherBranches={otherBranches}
+            mergeTarget={mergeTarget}
+            setMergeTarget={setMergeTarget}
+            handleMerge={handleMerge}
+          />
 
-          {head.type === 'branch' && rebaseableBranches.length > 0 && (
-            <ControlGroup title={`Rebase '${head.name}'`}>
-              <div className="flex gap-2">
-                <StyledSelect value={rebaseTarget} onChange={e => setRebaseTarget(e.target.value)}>
-                    <option value="">Chọn nhánh cơ sở...</option>
-                    {rebaseableBranches.map(b => <option key={b} value={b}>{b}</option>)}
-                </StyledSelect>
-                <button onClick={handleRebase} disabled={!rebaseTarget} className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 disabled:bg-slate-500 disabled:cursor-not-allowed disabled:transform-none">
-                    <RebaseIcon /> Rebase
-                </button>
-              </div>
-            </ControlGroup>
-          )}
+          <RebaseControls
+            head={head}
+            rebaseableBranches={rebaseableBranches}
+            rebaseTarget={rebaseTarget}
+            setRebaseTarget={setRebaseTarget}
+            handleRebase={handleRebase}
+          />
 
-          {head.type === 'branch' && (
-            <ControlGroup title="Chỉnh sửa Lịch sử">
-              <button onClick={handleRevert} disabled={!headCommit || headCommit.parents.length === 0} className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 disabled:bg-slate-500 disabled:transform-none disabled:cursor-not-allowed">
-                  <RevertIcon /> Revert Commit
-              </button>
-              <div className="flex gap-2">
-                  <StyledSelect value={resetTarget} onChange={e => setResetTarget(e.target.value)}>
-                      <option value="">Reset tới commit...</option>
-                      {sortedCommits.map(c => <option key={c.id} value={c.id}>{c.id}: {c.message.substring(0,20)}{c.message.length > 20 && '...'}</option>)}
-                  </StyledSelect>
-                  <button onClick={handleReset} disabled={!resetTarget} className="flex items-center justify-center gap-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 disabled:bg-slate-500 disabled:cursor-not-allowed disabled:transform-none">
-                      <ResetIcon /> Reset
-                  </button>
-              </div>
-            </ControlGroup>
-          )}
+          <HistoryControls
+            head={head}
+            headCommit={headCommit}
+            handleRevert={handleRevert}
+            sortedCommits={sortedCommits}
+            resetTarget={resetTarget}
+            setResetTarget={setResetTarget}
+            handleReset={handleReset}
+          />
         </aside>
 
         <div className="flex flex-col gap-6 min-h-0">

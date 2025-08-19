@@ -12,5 +12,6 @@ export const explanations = {
   RESET: "git reset <commit>: Moves the current branch's (HEAD) pointer back to a specific commit. This rewrites history by removing commits from the branch's history chain, but does not delete them. They become 'orphaned' if no other branch points to them.",
   PUSH: "git push: Uploads your local branch commits to the remote repository. This updates the remote branch to match your local one, sharing your changes with others.",
   FETCH: "git fetch: Downloads commits, files, and refs from a remote repository into your local repo. It updates your remote-tracking branches (like origin/main), but doesn't merge any changes into your own local branches.",
-  PULL: "git pull: Fetches changes from the remote and then merges them into your current local branch. It's a shortcut for 'git fetch' followed by 'git merge'."
+  PULL: "git pull: Fetches changes from the remote and then merges them into your current local branch. It's a shortcut for 'git fetch' followed by 'git merge'.",
+  CHERRY_PICK: "git cherry-pick <commit-id>: Applies the changes from a specific commit onto the current HEAD. This creates a new commit with a new ID, but with the same message and changes as the original."
 };

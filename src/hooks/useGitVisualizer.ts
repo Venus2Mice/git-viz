@@ -50,7 +50,7 @@ export const useGitVisualizer = () => {
   }, [head, branches, commits]);
 
   const isAncestor = useCallback((ancestorId: string, descendantId: string): boolean => {
-    if (!ancestorId) return true; // If ancestor doesn't exist, it's an ancestor of everything
+    if (!ancestorId) return true;
     let queue = [descendantId];
     const visited = new Set(queue);
     while (queue.length > 0) {
@@ -365,6 +365,35 @@ export const useGitVisualizer = () => {
     }
   }, [head, branches, remotes, commits, isAncestor, commitCounter]);
 
+  const handleCherryPick = useCallback((commitId: string) => {
+    const headCommit = getHeadCommit();
+    const commitToPick = commits[commitId];
+    if (!headCommit || !commitToPick) return;
+
+    const newId = `c${commitCounter}'`;
+    const newCommit = {
+      id: newId,
+      parents: [headCommit.id],
+      message: commitToPick.message,
+      x: headCommit.x + X_SPACING,
+      y: headCommit.y,
+    };
+
+    setCommits(prev => ({ ...prev, [newId]: newCommit }));
+
+    if (head.type === 'branch') {
+      setBranches(prev => ({
+        ...prev,
+        [head.name]: { ...prev[head.name], commitId: newId },
+      }));
+    } else {
+      setHead({ type: 'detached', commitId: newId });
+    }
+
+    setCommitCounter(prev => prev + 1);
+    setExplanation(explanations.CHERRY_PICK);
+  }, [getHeadCommit, commits, commitCounter, head]);
+
   const handleResetSimulation = useCallback(() => {
     setCommits({ [initialCommit.id]: initialCommit });
     setBranches(initialBranches);
@@ -407,6 +436,19 @@ export const useGitVisualizer = () => {
   const rebaseableBranches = useMemo(() => otherBranches.filter(b => !isAncestor(headCommit?.id || '', branches[b]?.commitId)), [otherBranches, branches, headCommit, isAncestor]);
   const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]);
 
+  const cherryPickableCommits = useMemo(() => {
+    if (!headCommit) return [];
+    const headAncestors = new Set<string>();
+    const queue = [headCommit.id];
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      if (headAncestors.has(id)) continue;
+      headAncestors.add(id);
+      commits[id]?.parents.forEach(p => queue.push(p));
+    }
+    return sortedCommits.filter(c => !headAncestors.has(c.id));
+  }, [commits, headCommit, sortedCommits]);
+
   const isAhead = useMemo(() => {
     if (head.type !== 'branch') return false;
     const localCommitId = branches[head.name]?.commitId;
@@ -440,6 +482,7 @@ export const useGitVisualizer = () => {
     otherBranches,
     rebaseableBranches,
     sortedCommits,
+    cherryPickableCommits,
     isAhead,
     isBehind,
     hasRemote,
@@ -456,6 +499,7 @@ export const useGitVisualizer = () => {
     handlePush,
     handlePull,
     handleSimulateRemotePush,
+    handleCherryPick,
     handleResetSimulation,
   };
 };

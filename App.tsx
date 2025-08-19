@@ -8,6 +8,7 @@ import RebaseControls from './src/components/RebaseControls';
 import HistoryControls from './src/components/HistoryControls';
 import RemoteControls from './src/components/RemoteControls';
 import SimulationControls from './src/components/SimulationControls';
+import CherryPickControls from './src/components/CherryPickControls';
 import { useGitVisualizer } from './src/hooks/useGitVisualizer';
 
 function App() {
@@ -117,6 +118,11 @@ function App() {
             resetTarget={resetTarget}
             setResetTarget={setResetTarget}
             handleReset={handleReset}
+          />
+
+          <CherryPickControls
+            cherryPickableCommits={git.cherryPickableCommits}
+            handleCherryPick={git.handleCherryPick}
           />
 
           <RemoteControls

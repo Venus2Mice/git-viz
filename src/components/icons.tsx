@@ -94,3 +94,12 @@ export const CloudPushIcon = () => (
         <path d="m16 16-4-4-4 4"></path>
     </svg>
 );
+
+export const CherryPickIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-5s-5 2.24-5 5Z"></path>
+        <path d="M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-5s-5 2.24-5 5Z"></path>
+        <path d="M7 12c0-6 4-6 4-6s4 0 4 6"></path>
+        <path d="M12 6V2"></path>
+    </svg>
+);

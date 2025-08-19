@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { Commit, Branch, Head, Tag } from '../types';
-import { COMMIT_RADIUS, X_SPACING, Y_SPACING, BRANCH_TAG_HEIGHT, SVG_PADDING } from '../constants';
+import { Commit, Branch, Head, Tag } from '../../types';
+import { COMMIT_RADIUS, X_SPACING, Y_SPACING, BRANCH_TAG_HEIGHT, SVG_PADDING } from '../../constants';
 import { TagIcon, HeadIcon, BranchIcon } from './icons';
 
 interface GitVisualizerProps {

@@ -1,12 +1,13 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import GitVisualizer from './components/GitVisualizer';
-import { CommitIcon, BranchIcon, MergeIcon, TagIcon, RevertIcon, RebaseIcon, ResetIcon } from './components/icons';
-import ControlGroup from './components/ControlGroup';
-import StyledSelect from './components/StyledSelect';
-import { useGitVisualizer } from './hooks/useGitVisualizer';
-import { explanations } from './constants/explanations';
-import { Commit, Branch, Head, Tag } from '../types'; // Added import for types
-import { X_SPACING, Y_SPACING } from '../constants'; // Added import for constants
+import GitVisualizer from './src/components/GitVisualizer';
+import { BranchIcon, MergeIcon, TagIcon, RevertIcon, RebaseIcon, ResetIcon } from './src/components/icons';
+import ControlGroup from './src/components/ControlGroup';
+import StyledSelect from './src/components/StyledSelect';
+import CommitControls from './src/components/CommitControls';
+import { useGitVisualizer } from './src/hooks/useGitVisualizer';
+import { explanations } from './src/constants/explanations';
+import { Commit, Branch, Head, Tag } from './types';
+import { X_SPACING, Y_SPACING } from './constants';
 
 function App() {
   const {
@@ -273,8 +274,8 @@ function App() {
     const reachable = new Set<string>();
     const queue: string[] = [];
     
-    Object.values(branches).forEach((b: Branch) => queue.push(b.commitId)); // Explicitly typed 'b'
-    Object.values(tags).forEach((t: Tag) => queue.push(t.commitId)); // Explicitly typed 't'
+    Object.values(branches).forEach((b: Branch) => queue.push(b.commitId));
+    Object.values(tags).forEach((t: Tag) => queue.push(t.commitId));
     if (head.type === 'detached') {
       queue.push(head.commitId);
     }
@@ -294,7 +295,7 @@ function App() {
 
   const otherBranches = useMemo(() => Object.keys(branches).filter(b => head.type === 'branch' && b !== head.name), [branches, head]);
   const rebaseableBranches = useMemo(() => otherBranches.filter(b => !isAncestor(getHeadCommit()?.id || '', branches[b]?.commitId)), [otherBranches, branches, getHeadCommit, isAncestor]);
-  const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]); // Explicitly typed 'a' and 'b'
+  const sortedCommits = useMemo(() => Object.values(commits).sort((a: Commit, b: Commit) => b.x - a.x), [commits]);
 
   const headCommit = getHeadCommit();
 
@@ -308,21 +309,11 @@ function App() {
       <div className="grid grid-cols-1 lg:grid-cols-[24rem_1fr] gap-6 flex-grow min-h-0">
         <aside className="bg-slate-800 rounded-lg p-6 flex flex-col shadow-2xl overflow-y-auto">
           
-          <ControlGroup title="Thực hiện Thay đổi">
-            <input 
-              type="text" 
-              value={newCommitMessage} 
-              onChange={e => setNewCommitMessage(e.target.value)} 
-              placeholder="Nội dung commit (tùy chọn)..."
-              className="w-full bg-slate-700 text-white placeholder-slate-400 border border-slate-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-sky-500"
-            />
-            <button 
-              onClick={handleCommit} 
-              className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105"
-            >
-              <CommitIcon /> Commit
-            </button>
-          </ControlGroup>
+          <CommitControls
+            newCommitMessage={newCommitMessage}
+            setNewCommitMessage={setNewCommitMessage}
+            handleCommit={handleCommit}
+          />
           
           <ControlGroup title="Tạo Con trỏ">
               <form onSubmit={handleBranch} className="flex flex-col gap-2">

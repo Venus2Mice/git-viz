@@ -10,16 +10,16 @@ interface CheckoutControlsProps {
 
 const CheckoutControls: React.FC<CheckoutControlsProps> = ({ branches, head, handleCheckout }) => {
   return (
-    <ControlGroup title="Checkout Nhánh">
-      <div className="flex flex-wrap gap-2">
+    <ControlGroup title="Checkout Branch">
+      <div className="flex flex-wrap gap-3">
         {Object.keys(branches).map(b => (
           <button
             key={b}
             onClick={() => handleCheckout(b)}
-            className={`font-mono px-3 py-1 text-sm rounded-full transition-all duration-200 ${
+            className={`font-mono px-4 py-2 text-sm rounded-lg transition-all duration-200 transform hover:scale-105 ${
               head.type === 'branch' && head.name === b
-                ? 'bg-sky-500 text-white ring-2 ring-offset-2 ring-offset-slate-800 ring-sky-400'
-                : 'bg-slate-600 hover:bg-slate-500 text-slate-200'
+                ? 'bg-sky-500 text-white ring-4 ring-sky-500/50'
+                : 'bg-slate-700 hover:bg-slate-600 text-slate-200'
             }`}
           >
             {b}

@@ -14,17 +14,17 @@ const CommitControls: React.FC<CommitControlsProps> = ({
   handleCommit,
 }) => {
   return (
-    <ControlGroup title="Thực hiện Thay đổi">
+    <ControlGroup title="Commit Changes">
       <input
         type="text"
         value={newCommitMessage}
         onChange={e => setNewCommitMessage(e.target.value)}
-        placeholder="Nội dung commit (tùy chọn)..."
-        className="w-full bg-slate-700 text-white placeholder-slate-400 border border-slate-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        placeholder="Commit message (optional)..."
+        className="w-full bg-slate-800 text-white placeholder-slate-400 border-2 border-slate-700 rounded-lg py-3 px-4 focus:outline-none focus:border-sky-500 text-base"
       />
       <button
         onClick={handleCommit}
-        className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105"
+        className="flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-sky-500/50"
       >
         <CommitIcon /> Commit
       </button>

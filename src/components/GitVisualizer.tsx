@@ -21,15 +21,15 @@ interface PointerTagProps {
 }
 
 const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag }) => {
-    const color = isTag ? 'bg-amber-600' : isHead ? 'bg-sky-500' : 'bg-emerald-600';
-    const iconColor = isTag ? 'text-amber-200' : isHead ? 'text-sky-200' : 'text-emerald-200';
+    const color = isTag ? 'bg-amber-500' : isHead ? 'bg-sky-500' : 'bg-emerald-500';
+    const iconColor = isTag ? 'text-amber-100' : isHead ? 'text-sky-100' : 'text-emerald-100';
     const Icon = isHead ? HeadIcon : (isTag ? TagIcon : BranchIcon);
 
     return (
       <foreignObject x={x - 50} y={y} width="100" height={BRANCH_TAG_HEIGHT} className="transition-all duration-500 ease-in-out">
-          <div className={`flex items-center justify-center w-full h-full rounded-md ${color} px-2 shadow`}>
+          <div className={`flex items-center justify-center w-full h-full rounded-lg ${color} px-2 shadow-md`}>
               <div className={`mr-1.5 ${iconColor}`}><Icon /></div>
-              <span className="text-white font-mono text-xs font-bold select-none truncate">{name}</span>
+              <span className="text-white font-mono text-sm font-extrabold select-none truncate">{name}</span>
           </div>
       </foreignObject>
     );
@@ -194,7 +194,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
   return (
     <div 
       ref={visualizerRef} 
-      className="h-full w-full bg-slate-900/70 border border-slate-700 rounded-lg p-4 overflow-y-auto overflow-x-auto relative shadow-inner cursor-grab"
+      className="h-full w-full bg-slate-950/70 border-2 border-slate-800 rounded-xl p-4 overflow-auto relative shadow-inner cursor-grab"
       onMouseDown={handleMouseDown}
     >
        <svg width="100%" height="100%" className="absolute inset-0 z-0 pointer-events-none">
@@ -284,7 +284,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                 >
                   <circle
                     r={COMMIT_RADIUS}
-                    className={`stroke-2 transition-all duration-300 group-hover:stroke-sky-300 ${isHeadCommit ? 'fill-sky-400 stroke-sky-200' : 'fill-slate-600 stroke-slate-400'}`}
+                    className={`stroke-2 transition-all duration-300 group-hover:stroke-sky-400 ${isHeadCommit ? 'fill-sky-500 stroke-sky-300' : 'fill-slate-700 stroke-slate-500'}`}
                   />
                   <text
                     textAnchor="middle"
@@ -352,7 +352,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
       </svg>
       {hoveredCommit && (
           <div 
-              className="absolute z-20 bg-slate-800 text-white text-sm rounded-md shadow-lg p-2 border border-slate-600 pointer-events-none transition-opacity duration-200"
+              className="absolute z-20 bg-slate-900 text-white text-sm rounded-lg shadow-lg p-3 border-2 border-slate-700 pointer-events-none transition-opacity duration-200"
               style={{
                   left: hoveredCommit.x,
                   top: hoveredCommit.y,
@@ -361,7 +361,7 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                   whiteSpace: 'pre-wrap',
               }}
           >
-              <p className="font-bold text-slate-300 mb-1">{hoveredCommit.commit.id}</p>
+              <p className="font-bold text-slate-300 mb-1 font-mono">{hoveredCommit.commit.id}</p>
               <p>{hoveredCommit.commit.message}</p>
           </div>
       )}

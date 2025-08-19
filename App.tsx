@@ -77,7 +77,7 @@ function App() {
   const handleBranch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!newBranchName || branches[newBranchName]) {
-      alert("Tên nhánh không hợp lệ hoặc đã tồn tại.");
+      alert("Invalid or existing branch name.");
       return;
     }
 
@@ -100,7 +100,7 @@ function App() {
   const handleTag = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!newTagName || tags[newTagName]) {
-      alert("Tên tag không hợp lệ hoặc đã tồn tại.");
+      alert("Invalid or existing tag name.");
       return;
     }
     const headCommit = getHeadCommit();
@@ -149,7 +149,7 @@ function App() {
     const targetCommit = commits[branches[mergeTarget].commitId];
     
     if (headCommit.id === targetCommit.id) {
-        alert("Các nhánh đã ở cùng một commit.");
+        alert("Branches are already at the same commit.");
         return;
     }
 
@@ -183,7 +183,7 @@ function App() {
   const handleRevert = useCallback(() => {
     const parentCommit = getHeadCommit();
     if (!parentCommit || parentCommit.parents.length === 0) {
-        alert("Không thể revert commit đầu tiên.");
+        alert("Cannot revert the initial commit.");
         return;
     }
     handleCommit(); // This will create a new commit
@@ -221,7 +221,7 @@ function App() {
     }
     
     if (commitsToReplay.length === 0) {
-        alert(`Nhánh '${featureBranchName}' đã được cập nhật với '${baseBranchName}'.`);
+        alert(`Branch '${featureBranchName}' is already up-to-date with '${baseBranchName}'.`);
         setRebaseTarget('');
         return;
     }
@@ -253,13 +253,13 @@ function App() {
 
     const handleReset = useCallback(() => {
     if (head.type !== 'branch' || !resetTarget) {
-      alert("Phải ở trên một nhánh và chọn commit đích để reset.");
+      alert("Must be on a branch and select a target commit to reset.");
       return;
     }
     
     const targetCommit = commits[resetTarget];
     if (!targetCommit) {
-        alert("Commit đích không tồn tại.");
+        alert("Target commit does not exist.");
         return;
     }
 
@@ -302,14 +302,14 @@ function App() {
   const headCommit = getHeadCommit();
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white flex flex-col p-4 sm:p-6 lg:p-8 font-sans">
+    <div className="h-screen bg-slate-950 text-white flex flex-col p-4 sm:p-6 lg:p-8 font-sans overflow-hidden">
       <header className="text-center mb-6 flex-shrink-0">
-        <h1 className="text-3xl sm:text-4xl font-bold text-sky-400">Git Visualizer</h1>
-        <p className="text-slate-400 mt-2">Minh họa trực quan các lệnh Git cơ bản</p>
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-100 tracking-tighter">Git Visualizer</h1>
+        <p className="text-slate-400 mt-2 text-lg">An interactive tool to understand Git commands.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[24rem_1fr] gap-6 flex-grow min-h-0">
-        <aside className="bg-slate-800 rounded-lg p-6 flex flex-col shadow-2xl overflow-y-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-[26rem_1fr] gap-8 flex-grow min-h-0">
+        <aside className="bg-slate-900 border-2 border-slate-800 rounded-xl p-6 flex flex-col shadow-lg overflow-y-auto">
           
           <CommitControls
             newCommitMessage={newCommitMessage}
@@ -359,13 +359,13 @@ function App() {
           />
         </aside>
 
-        <div className="flex flex-col gap-6 min-h-0">
+        <div className="flex flex-col gap-8 min-h-0">
             <main className="flex-grow min-h-0 min-w-0">
               <GitVisualizer commits={commits} branches={branches} head={head} tags={tags} onCommitClick={handleCheckoutCommit} reachableCommits={reachableCommits} />
             </main>
-            <div className="bg-slate-800 p-4 rounded-lg flex-shrink-0 shadow-lg">
-                <h3 className="text-lg font-semibold text-sky-300 mb-2">Giải thích Lệnh</h3>
-                <p className="text-slate-300 text-sm leading-relaxed">{explanation}</p>
+            <div className="bg-slate-900 border-2 border-slate-800 p-6 rounded-xl flex-shrink-0 shadow-lg">
+                <h3 className="text-2xl font-bold text-sky-400 mb-3">Command Explanation</h3>
+                <p className="text-slate-300 text-base leading-relaxed">{explanation}</p>
             </div>
         </div>
       </div>

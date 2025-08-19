@@ -18,15 +18,25 @@ interface PointerTagProps {
   y: number;
   isHead?: boolean;
   isTag?: boolean;
+  onMouseEnter: (e: React.MouseEvent) => void;
+  onMouseLeave: () => void;
 }
 
-const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag }) => {
+const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag, onMouseEnter, onMouseLeave }) => {
     const color = isTag ? 'bg-amber-500' : isHead ? 'bg-sky-500' : 'bg-emerald-500';
     const iconColor = isTag ? 'text-amber-100' : isHead ? 'text-sky-100' : 'text-emerald-100';
     const Icon = isHead ? HeadIcon : (isTag ? TagIcon : BranchIcon);
 
     return (
-      <foreignObject x={x - 50} y={y} width="100" height={BRANCH_TAG_HEIGHT} className="transition-all duration-500 ease-in-out">
+      <foreignObject 
+        x={x - 50} 
+        y={y} 
+        width="100" 
+        height={BRANCH_TAG_HEIGHT} 
+        className="transition-all duration-500 ease-in-out"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
           <div className={`flex items-center justify-center w-full h-full rounded-lg ${color} px-2 shadow-md`}>
               <div className={`mr-1.5 ${iconColor}`}><Icon /></div>
               <span className="text-white font-mono text-sm font-extrabold select-none truncate">{name}</span>
@@ -38,7 +48,7 @@ const PointerTag: React.FC<PointerTagProps> = ({ name, x, y, isHead, isTag }) =>
 
 const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, tags, onCommitClick, reachableCommits }) => {
   const commitList = useMemo(() => Object.values(commits), [commits]);
-  const [hoveredCommit, setHoveredCommit] = useState<{commit: Commit, x: number, y: number} | null>(null);
+  const [tooltip, setTooltip] = useState<{ content: React.ReactNode; x: number; y: number } | null>(null);
   const visualizerRef = useRef<HTMLDivElement>(null);
   const centeredOnceRef = useRef(false);
 
@@ -274,13 +284,18 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                   onMouseEnter={(e) => {
                       const rect = (e.currentTarget as SVGGElement).getBoundingClientRect();
                       const containerRect = visualizerRef.current!.getBoundingClientRect();
-                      setHoveredCommit({
-                          commit,
+                      setTooltip({
+                          content: (
+                            <>
+                              <p className="font-bold text-slate-300 mb-1 font-mono">{commit.id}</p>
+                              <p>{commit.message}</p>
+                            </>
+                          ),
                           x: rect.left - containerRect.left + rect.width / 2,
                           y: rect.top - containerRect.top
                       });
                   }}
-                  onMouseLeave={() => setHoveredCommit(null)}
+                  onMouseLeave={() => setTooltip(null)}
                 >
                   <circle
                     r={COMMIT_RADIUS}
@@ -307,6 +322,16 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
 
                 let pointerOffset = 0;
 
+                const showTooltip = (e: React.MouseEvent, content: string) => {
+                    const rect = (e.currentTarget as Element).getBoundingClientRect();
+                    const containerRect = visualizerRef.current!.getBoundingClientRect();
+                    setTooltip({
+                        content: <p className="font-mono">{content}</p>,
+                        x: rect.left - containerRect.left + rect.width / 2,
+                        y: rect.top - containerRect.top
+                    });
+                };
+
                 return (
                     <React.Fragment key={commitId}>
                         {tags.map((tag) => (
@@ -316,6 +341,8 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                                 x={commit.x}
                                 y={commit.y - (pointerOffset++ + 1) * (BRANCH_TAG_HEIGHT + 4) - Y_SPACING / 3}
                                 isTag
+                                onMouseEnter={(e) => showTooltip(e, tag.name)}
+                                onMouseLeave={() => setTooltip(null)}
                             />
                         ))}
                         {branches.map((branch) => {
@@ -327,6 +354,8 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                                     x={commit.x}
                                     y={commit.y - (pointerOffset++ + 1) * (BRANCH_TAG_HEIGHT + 4) - Y_SPACING / 3}
                                     isHead={isHeadBranch}
+                                    onMouseEnter={(e) => showTooltip(e, branch.name)}
+                                    onMouseLeave={() => setTooltip(null)}
                                 />
                             );
                         })}
@@ -337,6 +366,17 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                 const commit = commits[head.commitId];
                 const existingPointers = pointersByCommit[head.commitId];
                 const pointerOffset = (existingPointers?.tags.length || 0) + (existingPointers?.branches.length || 0);
+                
+                const showTooltip = (e: React.MouseEvent, content: string) => {
+                    const rect = (e.currentTarget as Element).getBoundingClientRect();
+                    const containerRect = visualizerRef.current!.getBoundingClientRect();
+                    setTooltip({
+                        content: <p className="font-mono">{content}</p>,
+                        x: rect.left - containerRect.left + rect.width / 2,
+                        y: rect.top - containerRect.top
+                    });
+                };
+
                 return (
                     <PointerTag 
                         key="HEAD" 
@@ -344,25 +384,26 @@ const GitVisualizer: React.FC<GitVisualizerProps> = ({ commits, branches, head, 
                         x={commit.x} 
                         y={commit.y - (pointerOffset + 1) * (BRANCH_TAG_HEIGHT + 4) - Y_SPACING / 3}
                         isHead 
+                        onMouseEnter={(e) => showTooltip(e, 'HEAD (detached)')}
+                        onMouseLeave={() => setTooltip(null)}
                     />
                 );
             })()}
           </g>
         </g>
       </svg>
-      {hoveredCommit && (
+      {tooltip && (
           <div 
               className="absolute z-20 bg-slate-900 text-white text-sm rounded-lg shadow-lg p-3 border-2 border-slate-700 pointer-events-none transition-opacity duration-200"
               style={{
-                  left: hoveredCommit.x,
-                  top: hoveredCommit.y,
+                  left: tooltip.x,
+                  top: tooltip.y,
                   transform: 'translate(-50%, -120%)',
                   maxWidth: '250px',
                   whiteSpace: 'pre-wrap',
               }}
           >
-              <p className="font-bold text-slate-300 mb-1 font-mono">{hoveredCommit.commit.id}</p>
-              <p>{hoveredCommit.commit.message}</p>
+              {tooltip.content}
           </div>
       )}
     </div>

@@ -77,3 +77,20 @@ export const PushIcon = () => (
         <path d="M19 3h-2a2 2 0 0 0-2 2v2"></path>
     </svg>
 );
+
+export const PullIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 8v8"></path>
+        <path d="m15 13-3 3-3-3"></path>
+        <path d="M17 21H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"></path>
+        <path d="M19 3h-2a2 2 0 0 0-2 2v2"></path>
+    </svg>
+);
+
+export const CloudPushIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+        <path d="M12 12v9"></path>
+        <path d="m16 16-4-4-4 4"></path>
+    </svg>
+);

@@ -10,5 +10,7 @@ export const explanations = {
   REVERT: "git revert HEAD: Creates a new commit that undoes the changes made by a previous commit. History is added to, not altered.",
   REBASE: "git rebase <base>: Moves the entire current branch to begin on top of another branch. It rewrites commit history to create a linear workflow.",
   RESET: "git reset <commit>: Moves the current branch's (HEAD) pointer back to a specific commit. This rewrites history by removing commits from the branch's history chain, but does not delete them. They become 'orphaned' if no other branch points to them.",
-  PUSH: "git push: Uploads your local branch commits to the remote repository. This updates the remote branch to match your local one, sharing your changes with others."
+  PUSH: "git push: Uploads your local branch commits to the remote repository. This updates the remote branch to match your local one, sharing your changes with others.",
+  FETCH: "git fetch: Downloads commits, files, and refs from a remote repository into your local repo. It updates your remote-tracking branches (like origin/main), but doesn't merge any changes into your own local branches.",
+  PULL: "git pull: Fetches changes from the remote and then merges them into your current local branch. It's a shortcut for 'git fetch' followed by 'git merge'."
 };

@@ -121,7 +121,11 @@ function App() {
 
           <RemoteControls
             handlePush={git.handlePush}
+            handlePull={git.handlePull}
+            handleSimulateRemotePush={git.handleSimulateRemotePush}
             isAhead={git.isAhead}
+            isBehind={git.isBehind}
+            hasRemote={git.hasRemote}
           />
 
           <SimulationControls

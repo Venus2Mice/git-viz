@@ -305,6 +305,66 @@ export const useGitVisualizer = () => {
     setExplanation(explanations.PUSH);
   }, [head, branches]);
 
+  const handleSimulateRemotePush = useCallback(() => {
+    if (head.type !== 'branch') return;
+    const remoteBranch = remotes.origin[head.name];
+    if (!remoteBranch) {
+      alert(`Remote branch 'origin/${head.name}' does not exist. Push the branch first.`);
+      return;
+    }
+
+    const parentCommit = commits[remoteBranch.commitId];
+    if (!parentCommit) return;
+
+    const newId = `c${commitCounter}`;
+    const newCommit: Commit = {
+      id: newId,
+      parents: [parentCommit.id],
+      message: `Remote work on ${head.name}`,
+      x: parentCommit.x + X_SPACING,
+      y: parentCommit.y,
+    };
+
+    setCommits(prev => ({ ...prev, [newId]: newCommit }));
+    setRemotes(prev => ({
+      ...prev,
+      origin: {
+        ...prev.origin,
+        [head.name]: { ...remoteBranch, commitId: newId }
+      }
+    }));
+    setCommitCounter(prev => prev + 1);
+    setExplanation(explanations.FETCH);
+  }, [head, remotes, commits, commitCounter]);
+
+  const handlePull = useCallback(() => {
+    if (head.type !== 'branch') return;
+    const localBranch = branches[head.name];
+    const remoteBranch = remotes.origin[head.name];
+    if (!localBranch || !remoteBranch) return;
+
+    const localCommit = commits[localBranch.commitId];
+    const remoteCommit = commits[remoteBranch.commitId];
+
+    if (isAncestor(localCommit.id, remoteCommit.id)) { // Fast-forward
+      setBranches(prev => ({ ...prev, [head.name]: { ...prev[head.name], commitId: remoteCommit.id } }));
+      setExplanation(explanations.PULL);
+    } else { // Merge commit
+      const newId = `c${commitCounter}`;
+      const newCommit: Commit = {
+        id: newId,
+        parents: [localCommit.id, remoteCommit.id].sort(),
+        message: `Merge remote-tracking branch 'origin/${head.name}'`,
+        x: Math.max(localCommit.x, remoteCommit.x) + X_SPACING,
+        y: localCommit.y,
+      };
+      setCommits(prev => ({ ...prev, [newId]: newCommit }));
+      setBranches(prev => ({ ...prev, [head.name]: { ...prev[head.name], commitId: newId } }));
+      setCommitCounter(prev => prev + 1);
+      setExplanation(explanations.PULL);
+    }
+  }, [head, branches, remotes, commits, isAncestor, commitCounter]);
+
   const handleResetSimulation = useCallback(() => {
     setCommits({ [initialCommit.id]: initialCommit });
     setBranches(initialBranches);
@@ -354,6 +414,18 @@ export const useGitVisualizer = () => {
     return localCommitId !== remoteCommitId && isAncestor(remoteCommitId, localCommitId);
   }, [head, branches, remotes, isAncestor]);
 
+  const isBehind = useMemo(() => {
+    if (head.type !== 'branch') return false;
+    const localCommitId = branches[head.name]?.commitId;
+    const remoteCommitId = remotes.origin[head.name]?.commitId;
+    return localCommitId !== remoteCommitId && isAncestor(localCommitId, remoteCommitId);
+  }, [head, branches, remotes, isAncestor]);
+
+  const hasRemote = useMemo(() => {
+    if (head.type !== 'branch') return false;
+    return !!remotes.origin[head.name];
+  }, [head, remotes]);
+
   return {
     // State
     commits,
@@ -369,6 +441,8 @@ export const useGitVisualizer = () => {
     rebaseableBranches,
     sortedCommits,
     isAhead,
+    isBehind,
+    hasRemote,
     // Handlers
     handleCommit,
     handleBranch,
@@ -380,6 +454,8 @@ export const useGitVisualizer = () => {
     handleRebase,
     handleReset,
     handlePush,
+    handlePull,
+    handleSimulateRemotePush,
     handleResetSimulation,
   };
 };

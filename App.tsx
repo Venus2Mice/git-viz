@@ -3,6 +3,9 @@ import { Commit, Branch, Head, Tag } from './types';
 import GitVisualizer from './components/GitVisualizer';
 import { CommitIcon, BranchIcon, MergeIcon, TagIcon, RevertIcon, RebaseIcon, ResetIcon } from './components/icons';
 import { Y_SPACING, X_SPACING, SVG_PADDING } from './constants';
+import { explanations } from '@/src/constants/explanations';
+import ControlGroup from '@/src/components/ControlGroup';
+import StyledSelect from '@/src/components/StyledSelect';
 
 const initialCommit: Commit = {
   id: 'c0',
@@ -16,41 +19,6 @@ const initialBranch: Branch = {
   name: 'main',
   commitId: 'c0',
 };
-
-const explanations = {
-  INITIAL: "Đây là kho git của bạn. Mỗi commit là một snapshot của dự án. Nhấp vào các nút để thực hiện các lệnh git.",
-  COMMIT: "git commit: Tạo một snapshot mới. Mỗi commit có một ID duy nhất và trỏ đến (các) commit cha, tạo nên một lịch sử.",
-  BRANCH: "git branch <tên>: Tạo một con trỏ mới (nhánh) đến một commit. Nhánh cho phép bạn phát triển các tính năng một cách cô lập.",
-  CHECKOUT: "git checkout <tên>: Chuyển HEAD sang một nhánh khác hoặc một commit cụ thể. HEAD chỉ định vị trí commit tiếp theo sẽ được tạo.",
-  CHECKOUT_COMMIT: "Detached HEAD: HEAD đang trỏ trực tiếp đến một commit thay vì một nhánh. Các commit mới sẽ không thuộc bất kỳ nhánh nào.",
-  MERGE: "git merge <tên>: Kết hợp các thay đổi từ một nhánh khác vào nhánh hiện tại (HEAD). Một commit hợp nhất mới với hai cha được tạo ra.",
-  MERGE_FF: "Fast-Forward Merge: Vì không có commit nào khác trên nhánh đích, git chỉ cần di chuyển con trỏ của nhánh về phía trước. Không cần commit hợp nhất.",
-  TAG: "git tag <tên>: Tạo một con trỏ cố định đến một commit cụ thể, thường được sử dụng để đánh dấu các phiên bản phát hành (v1.0).",
-  REVERT: "git revert HEAD: Tạo một commit mới để hoàn tác các thay đổi được thực hiện bởi commit trước đó. Lịch sử được thêm vào, không bị thay đổi.",
-  REBASE: "git rebase <base>: Di chuyển toàn bộ nhánh hiện tại để bắt đầu từ đỉnh của một nhánh khác. Nó viết lại lịch sử commit để tạo ra một luồng công việc tuyến tính.",
-  RESET: "git reset <commit>: Di chuyển con trỏ của nhánh hiện tại (HEAD) về một commit cụ thể. Lệnh này viết lại lịch sử bằng cách loại bỏ các commit khỏi chuỗi lịch sử của nhánh, nhưng không xóa chúng. Chúng trở thành commit 'mồ côi' nếu không có nhánh nào khác trỏ đến chúng."
-};
-
-const ControlGroup = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="border-t border-slate-700 pt-5 mt-5 first:border-t-0 first:pt-0 first:mt-0">
-        <h3 className="text-lg font-semibold text-slate-300 mb-3">{title}</h3>
-        <div className="flex flex-col gap-4">{children}</div>
-    </div>
-);
-
-const StyledSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
-    <div className="relative w-full">
-        <select 
-            {...props}
-            className="w-full appearance-none bg-slate-700 text-white border border-slate-600 rounded-md py-2 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-sky-500"
-        >
-            {props.children}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-        </div>
-    </div>
-);
 
 
 function App() {

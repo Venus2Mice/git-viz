@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">git-viz</string>
+    <string name="title_activity_main">git-viz</string>
+    <string name="package_name">com.example.gitviz</string>
+    <string name="custom_url_scheme">com.example.gitviz</string>
+</resources>

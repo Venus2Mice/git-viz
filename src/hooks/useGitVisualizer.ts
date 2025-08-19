@@ -76,36 +76,50 @@ export const useGitVisualizer = () => {
   }, [getHeadCommit, commitCounter, head, branchLanes, setCommits, setBranches, setHead, setCommitCounter, setExplanation]);
 
   const handleBranch = useCallback((branchName: string) => {
-    if (!branchName || branches[branchName]) {
-      alert("Invalid or existing branch name.");
+    let finalBranchName = branchName;
+    if (!finalBranchName) {
+      do {
+        finalBranchName = `branch-${Math.random().toString(36).substring(2, 7)}`;
+      } while (branches[finalBranchName]);
+    }
+
+    if (branches[finalBranchName]) {
+      alert("Branch name already exists.");
       return false;
     }
 
     const headCommit = getHeadCommit();
     if (!headCommit) return false;
 
-    setBranches(prev => ({ ...prev, [branchName]: { name: branchName, commitId: headCommit.id } }));
+    setBranches(prev => ({ ...prev, [finalBranchName]: { name: finalBranchName, commitId: headCommit.id } }));
     
     const usedLanes = new Set(Object.values(branchLanes));
     let newLane = 1;
     while(usedLanes.has(newLane)) {
       newLane++;
     }
-    setBranchLanes(prev => ({...prev, [branchName]: newLane}));
+    setBranchLanes(prev => ({...prev, [finalBranchName]: newLane}));
 
     setExplanation(explanations.BRANCH);
     return true;
   }, [branches, getHeadCommit, branchLanes, setBranches, setBranchLanes, setExplanation]);
 
   const handleTag = useCallback((tagName: string) => {
-    if (!tagName || tags[tagName]) {
-      alert("Invalid or existing tag name.");
+    let finalTagName = tagName;
+    if (!finalTagName) {
+      do {
+        finalTagName = `v${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 10)}`;
+      } while (tags[finalTagName]);
+    }
+
+    if (tags[finalTagName]) {
+      alert("Tag name already exists.");
       return false;
     }
     const headCommit = getHeadCommit();
     if (!headCommit) return false;
 
-    setTags(prev => ({...prev, [tagName]: { name: tagName, commitId: headCommit.id }}));
+    setTags(prev => ({...prev, [finalTagName]: { name: finalTagName, commitId: headCommit.id }}));
     setExplanation(explanations.TAG);
     return true;
   }, [tags, getHeadCommit, setTags, setExplanation]);

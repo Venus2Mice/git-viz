@@ -9,6 +9,7 @@ import HistoryControls from './src/components/HistoryControls';
 import RemoteControls from './src/components/RemoteControls';
 import SimulationControls from './src/components/SimulationControls';
 import CherryPickControls from './src/components/CherryPickControls';
+import CommandHistory from './src/components/CommandHistory';
 import { useGitVisualizer } from './src/hooks/useGitVisualizer';
 
 function App() {
@@ -151,9 +152,12 @@ function App() {
                 reachableCommits={git.reachableCommits} 
               />
             </main>
-            <div className="bg-slate-900 border-2 border-slate-800 p-6 rounded-xl flex-shrink-0 shadow-lg">
-                <h3 className="text-2xl font-bold text-sky-400 mb-3">Command Explanation</h3>
-                <p className="text-slate-300 text-base leading-relaxed">{git.explanation}</p>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 flex-shrink-0">
+              <CommandHistory history={git.commandHistory} />
+              <div className="bg-slate-900 border-2 border-slate-800 p-6 rounded-xl shadow-lg">
+                  <h3 className="text-2xl font-bold text-sky-400 mb-3">Command Explanation</h3>
+                  <p className="text-slate-300 text-base leading-relaxed">{git.explanation}</p>
+              </div>
             </div>
         </div>
       </div>

@@ -35,7 +35,7 @@ const MergeControls: React.FC<MergeControlsProps> = ({
           <button
             onClick={handleMerge}
             disabled={!mergeTarget}
-            className="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:bg-slate-700 disabled:text-slate-400 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-purple-500/50"
+            className="flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:bg-slate-700 disabled:text-slate-400 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-purple-500/50"
           >
             <MergeIcon /> Merge
           </button>

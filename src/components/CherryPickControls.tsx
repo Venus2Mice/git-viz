@@ -42,7 +42,7 @@ const CherryPickControls: React.FC<CherryPickControlsProps> = ({
           <button
             onClick={onCherryPick}
             disabled={!target}
-            className="flex items-center justify-center gap-2 bg-pink-500 hover:bg-pink-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:bg-slate-700 disabled:text-slate-400 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-pink-500/50"
+            className="flex items-center justify-center gap-2 bg-pink-500 hover:bg-pink-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:bg-slate-700 disabled:text-slate-400 disabled:scale-100 disabled:cursor-not-allowed focus:outline-none focus:ring-4 focus:ring-pink-500/50"
           >
             <CherryPickIcon /> Pick
           </button>

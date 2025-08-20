@@ -65,8 +65,8 @@ function App() {
   }, [git]);
 
   return (
-    <div className="h-screen bg-slate-950 text-white flex flex-col p-4 sm:p-6 lg:p-8 font-sans overflow-hidden">
-      <header className="text-center mb-6 flex-shrink-0">
+    <div className="h-screen bg-slate-950 text-white flex flex-col px-4 sm:px-6 lg:px-8 py-8 font-sans overflow-hidden">
+      <header className="text-center mb-8 flex-shrink-0">
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-100 tracking-tighter">Git Visualizer</h1>
         <p className="text-slate-400 mt-2 text-lg">An interactive tool to understand Git commands.</p>
       </header>

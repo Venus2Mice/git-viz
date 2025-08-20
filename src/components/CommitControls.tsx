@@ -26,7 +26,7 @@ const CommitControls: React.FC<CommitControlsProps> = ({
       <Tooltip text="git commit: Create a new snapshot of changes on the current branch." className="w-full">
         <button
           onClick={handleCommit}
-          className="w-full flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-sky-500/50"
+          className="w-full flex items-center justify-center gap-2 bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-sky-500/50"
         >
           <CommitIcon /> Commit
         </button>

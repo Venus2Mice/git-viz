@@ -16,7 +16,7 @@ const CheckoutControls: React.FC<CheckoutControlsProps> = ({ branches, head, han
           <button
             key={b}
             onClick={() => handleCheckout(b)}
-            className={`font-mono px-4 py-2 text-sm rounded-lg transition-all duration-200 transform hover:scale-105 ${
+            className={`font-mono px-4 py-2 text-sm rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 ${
               head.type === 'branch' && head.name === b
                 ? 'bg-sky-500 text-white ring-4 ring-sky-500/50'
                 : 'bg-slate-700 hover:bg-slate-600 text-slate-200'

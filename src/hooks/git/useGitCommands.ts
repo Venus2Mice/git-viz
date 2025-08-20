@@ -194,6 +194,8 @@ export const useGitCommands = (state: GitState, setters: GitSetters) => {
     const baseCommit = commits[branches[baseBranchName].commitId];
     const featureHeadCommit = commits[branches[featureBranchName].commitId];
 
+    // Step 1: Find all ancestors of the base branch's head commit.
+    // This helps us find the common ancestor where the feature branch diverged.
     const baseAncestors = new Set();
     let q: string[] = [baseCommit.id];
     while(q.length > 0) {
@@ -204,14 +206,16 @@ export const useGitCommands = (state: GitState, setters: GitSetters) => {
         }
     }
 
+    // Step 2: Walk back from the feature branch's head, collecting all commits
+    // that are NOT ancestors of the base branch. These are the commits we need to "replay".
     const commitsToReplay: Commit[] = [];
     q = [featureHeadCommit.id];
-    const visited = new Set([baseCommit.id]);
+    const visited = new Set([baseCommit.id]); // Start visited with base commit to avoid re-traversing
     while(q.length > 0) {
         const id = q.shift()!;
         if (!commits[id] || visited.has(id) || baseAncestors.has(id)) continue;
         visited.add(id);
-        commitsToReplay.unshift(commits[id]);
+        commitsToReplay.unshift(commits[id]); // Add to the front to maintain chronological order
         q.push(...commits[id].parents);
     }
     
@@ -220,23 +224,27 @@ export const useGitCommands = (state: GitState, setters: GitSetters) => {
         return;
     }
 
+    // Step 3: "Replay" each commit on top of the base branch head.
+    // This creates new commits with the same message but new IDs and parents.
     let newParentCommit = baseCommit;
     let newCommits = {...commits};
     let currentCommitCounter = commitCounter;
 
     for (const oldCommit of commitsToReplay) {
-        const newId = `c${currentCommitCounter++}'`;
+        const newId = `c${currentCommitCounter++}'`; // Append ' to denote a rebased commit
         const newCommit: Commit = {
             id: newId,
             parents: [newParentCommit.id],
             message: oldCommit.message,
             x: newParentCommit.x + X_SPACING,
-            y: (branchLanes[baseBranchName] || 1) * Y_SPACING
+            y: (branchLanes[baseBranchName] || 1) * Y_SPACING // Replay onto the base branch's lane
         };
         newCommits[newId] = newCommit;
         newParentCommit = newCommit;
     }
 
+    // Step 4: Update the application state with the new commits and move the
+    // feature branch pointer to the last replayed commit.
     setCommits(newCommits);
     setCommitCounter(currentCommitCounter);
     setBranches(prev => ({...prev, [featureBranchName]: {...prev[featureBranchName], commitId: newParentCommit.id }}));
